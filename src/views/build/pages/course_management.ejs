@@ -410,15 +410,15 @@
 
 
                         <div class="flex flex-wrap">
-
-
                             <div class="md:w-1/2 lg:w-1/3 xl:w-1/4 max-w-xs lg:max-w-md xl:max-w-lg p-4">
-                                <input id="search-input" type="text" placeholder="Tìm theo mã học phần"
+                                <input id="search-input-code" type="text" placeholder="Tìm theo mã học phần"
+                                    value="<%= typeof searchCode !== 'undefined' ? searchCode : '' %>"
                                     class="focus:shadow-primary-outline text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none"></input>
                             </div>
 
                             <div class="md:w-1/2 lg:w-1/3 xl:w-1/4 max-w-xs lg:max-w-md xl:max-w-lg p-4">
-                                <input id="search-input" type="text" placeholder="Tìm theo tên học phần"
+                                <input id="search-input-name" type="text" placeholder="Tìm theo tên học phần"
+                                    value="<%= typeof searchName !== 'undefined' ? searchName : '' %>"
                                     class="focus:shadow-primary-outline text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none"></input>
                             </div>
 
@@ -435,47 +435,30 @@
                                         <span>Reset</span>
                                     </button>
                                 </div>
-                                <script>
-                                    // Lắng nghe sự kiện khi nút tìm kiếm được nhấn
-                                    document.getElementById("search-button").addEventListener("click", function () {
-                                        var searchByName = document.getElementById("search-input-name").value;
-                                        var searchByCode = document.getElementById("search-input-code").value;
-
-                                        // Gửi yêu cầu tìm kiếm đến backend
-                                        fetch(`/search?name=${searchByName}&code=${searchByCode}`)
-                                            .then(response => response.json())
-                                            .then(data => {
-                                                // Xử lý dữ liệu trả về từ backend, có thể là hiển thị kết quả trên giao diện
-                                                console.log(data);
-                                            })
-                                            .catch(error => {
-                                                console.error('Error:', error);
-                                            });
-                                    });
-
-                                    // Lắng nghe sự kiện khi nút reset được nhấn
-                                    document.getElementById("reset-button").addEventListener("click", function () {
-                                        // Đặt lại giá trị của ô nhập liệu tìm kiếm theo tên học phần và mã học phần
-                                        document.getElementById("search-input-name").value = "";
-                                        document.getElementById("search-input-code").value = "";
-
-                                        // Gửi yêu cầu đặt lại đến backend
-                                        fetch('/reset', {
-                                            method: 'POST'
-                                        })
-                                            .then(response => {
-                                                // Xử lý phản hồi từ backend nếu cần
-                                            })
-                                            .catch(error => {
-                                                console.error('Error:', error);
-                                            });
-                                    });
-
-                                </script>
-
                             </div>
-
                         </div>
+
+                        <script>
+                            document.getElementById('search-button').addEventListener('click', function () {
+                                const searchInputCode = document.querySelector('input[placeholder="Tìm theo mã học phần"]').value;
+                                const searchInputName = document.querySelector('input[placeholder="Tìm theo tên học phần"]').value;
+                                const url = new URL(window.location.href);
+                                url.pathname = '/courseSearch';
+                                url.searchParams.set('page', 1);  // Thiết lập trang mặc định là 1
+                                if (searchInputCode) {
+                                    url.searchParams.set('mhp', searchInputCode);
+                                }
+                                if (searchInputName) {
+                                    url.searchParams.set('thp', searchInputName);
+                                }
+                                window.location.href = url.toString();
+                            });
+
+                            document.getElementById('reset-button').addEventListener('click', function () {
+                                window.location.href = '/courseSearch?page=1'; // Đặt lại trang về /hp?page=1
+                            });
+                        </script>
+
                         <div class="flex-auto px-0 pt-0 pb-2">
                             <div class="p-0 overflow-x-auto">
                                 <table
@@ -583,11 +566,6 @@
                                                 </td>
                                             </tr>
                                             <% counter++; }); %>
-
-
-
-
-
                                     </tbody>
                                 </table>
 
@@ -599,7 +577,68 @@
             </div>
         </div>
         <!-- end cards -->
+        <div style="text-align:center; margin-top: 20px;">
 
+            <style>
+                .pagination {
+                    display: inline-block;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .pagination a,
+                .pagination span {
+                    color: #6a0dad;
+                    /* Màu tím chủ đạo */
+                    float: left;
+                    padding: 8px 16px;
+                    text-decoration: none;
+                    transition: background-color 0.3s;
+                    border: 1px solid #ddd;
+                    margin: 0 4px;
+                    border-radius: 4px;
+                }
+
+                .pagination a:hover {
+                    background-color: #ddd;
+                }
+
+                .pagination a.active {
+                    background-color: #6a0dad;
+                    color: white;
+                    border: 1px solid #6a0dad;
+                }
+            </style>
+
+            <div class="pagination">
+                <% if (typeof totalPages !=='undefined' && totalPages> 1) { %>
+                    <% if (currentPage> 1) { %>
+                        <a href="?page=<%= currentPage - 1 %>" class="pagination-link">Previous</a>
+                        <% } else { %>
+                            <span class="pagination-link">Previous</span>
+                            <% } %>
+                                <% for (let i=1; i <=totalPages; i++) { %>
+                                    <a href="?page=<%= i %>"
+                                        class="pagination-link <%= currentPage === i ? 'active' : '' %>">
+                                        <%= i %>
+                                    </a>
+                                    <% } %>
+                                        <% if (currentPage < totalPages) { %>
+                                            <a href="?page=<%= currentPage + 1 %>" class="pagination-link">Next</a>
+                                            <% } else { %>
+                                                <span class="pagination-link">Next</span>
+                                                <% } %>
+                                                    <% } %>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const activeLink = document.querySelector('.pagination-link.active');
+                    if (activeLink) {
+                        activeLink.style.fontWeight = 'bold';
+                    }
+                });
+            </script>
+        </div>
     </main>
 
     <!-- -->

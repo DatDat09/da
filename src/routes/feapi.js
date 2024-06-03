@@ -140,6 +140,8 @@ routerAPI.delete('/teachers/:id', async (req, res) => {
 routerAPI.get('/courses', getCourse)
 routerAPI.get('/courses/:idCourse', getClassbyCourse)
 routerAPI.get('/courseSearch', searchCourse)
+routerAPI.post('/courses', postCreateCourse)
+
 
 //Lớp học
 routerAPI.get('/class', getClass)
@@ -196,38 +198,6 @@ routerAPI.get('/faceCheckAttend', faceController.renderForm);
 routerAPI.get('/faceCheckAttend/:idClassExam', faceController.renderForm);
 routerAPI.post('/check-face/:idClassExam', faceController.checkFaceByClassExam);
 routerAPI.get('/get-recognized-name/:userId', faceController.getFaceByName);
-
-
-//////////////////////////////////////
-routerAPI.get('/search', function (req, res) {
-    const searchByName = req.query.name;
-    const searchByCode = req.query.code;
-
-    // Thực hiện tìm kiếm dựa trên giá trị nhận được từ frontend
-    // Ví dụ:
-    // const results = searchFunction(searchByName, searchByCode);
-
-    // Sau đó gửi kết quả về cho frontend
-    res.json({ results: "Kết quả tìm kiếm" });
-});
-
-// Endpoint để xử lý yêu cầu reset
-routerAPI.post('/reset', function (req, res) {
-    // Đặt lại dữ liệu hoặc thực hiện bất kỳ hành động nào cần thiết để đặt lại trạng thái
-    // Ví dụ:
-    // resetFunction();
-
-    res.sendStatus(200); // Phản hồi 200 OK
-});
-
-
-
-
-
-
-
-
-
 
 
 

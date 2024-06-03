@@ -220,37 +220,37 @@ module.exports = {
 
 
     searchCourse: async (req, res) => {
-        const searchMHP = req.query.name || '';
-        const searchTHP = req.query.mssv || '';
         try {
-            // Tạo truy vấn tìm kiếm
+            const currentPage = parseInt(req.query.page) || 1;
+            const itemsPerPage = 5;
+            const searchCode = req.query.mhp || '';
+            const searchName = req.query.thp || '';
+    
             let query = {};
-            if (searchMHP) {
-                query.mhp = { $regex: searchMHP, $options: 'i' };
+            if (searchCode) {
+                query.maHocPhan = { $regex: searchCode, $options: 'i' };
             }
-            if (searchTHP) {
-                query.thp = { $regex: searchTHP, $options: 'i' };
+            if (searchName) {
+                query.name = { $regex: searchName, $options: 'i' };
             }
-
-            // Phân trang
-            const page = parseInt(req.query.page) || 1;
-            const limit = 6;
-            const skip = (page - 1) * limit;
-
-            // Lấy tài liệu khớp với phân trang
-            const results = await Course.find(query).skip(skip).limit(limit);
-            const totalStudents = await Course.countDocuments(query);
-            const totalPages = Math.ceil(totalStudents / limit);
-
-            return res.render('build/pages/course_management.ejs', {
-                listCourse: results,
-                searchQuery: { mhp: searchMHP, thp: searchTHP },
-                totalPages,
-                currentPage: page
+    
+            const totalItems = await Course.countDocuments(query);
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+    
+            const courses = await Course.find(query)
+                .skip((currentPage - 1) * itemsPerPage)
+                .limit(itemsPerPage);
+    
+            res.render('build/pages/course_management', {
+                listCourse: courses,
+                totalPages: totalPages,
+                currentPage: currentPage,
+                searchCode: searchCode,
+                searchName: searchName
             });
-        } catch (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'Internal Server Error' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Lỗi máy chủ');
         }
     },
 
